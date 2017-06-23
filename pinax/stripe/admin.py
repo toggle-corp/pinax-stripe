@@ -1,5 +1,7 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
+from django.apps import apps as django_apps
+from .conf import settings
 from django.db.models import Count, Q
 
 from .models import (  # @@@ make all these read-only
@@ -17,6 +19,10 @@ from .models import (  # @@@ make all these read-only
     Transfer,
     TransferChargeFee
 )
+
+
+def get_user_model():
+    return django_apps.get_model(settings.STRIPE_USER_MODEL)
 
 
 def user_search_fields():  # coverage: omit
@@ -196,7 +202,10 @@ class BitcoinReceiverInline(admin.TabularInline):
 
 
 def subscription_status(obj):
-    return ", ".join([subscription.status for subscription in obj.subscription_set.all()])
+    return ", ".join([
+        subscription.status for subscription in obj.subscription_set.all()])
+
+
 subscription_status.short_description = "Subscription Status"
 
 
@@ -237,6 +246,8 @@ class InvoiceItemInline(admin.TabularInline):
 
 def customer_has_card(obj):
     return obj.customer.card_set.exclude(fingerprint='').exists()
+
+
 customer_has_card.short_description = "Customer Has Card"
 
 
@@ -248,6 +259,8 @@ def customer_user(obj):
         username,
         email
     )
+
+
 customer_user.short_description = "Customer"
 
 
