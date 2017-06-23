@@ -16,6 +16,8 @@ from .forms import PlanForm, PaymentMethodForm
 from .mixins import LoginRequiredMixin, CustomerMixin, PaymentsContextMixin
 from .models import Invoice, Card, Subscription
 
+STRIP_USER_MODEL = __import__(settings.STRIP_USER_MODEL)
+
 
 class InvoiceListView(LoginRequiredMixin, CustomerMixin, ListView):
     model = Invoice
@@ -109,7 +111,8 @@ class SubscriptionCreateView(LoginRequiredMixin, PaymentsContextMixin, CustomerM
 
     def set_customer(self):
         if self.customer is None:
-            self._customer = customers.create(self.request.user)
+            self._customer = customers.create(STRIP_USER_MODEL.objects.get(
+                pk=self.kwargs.get(settings.STRIPE_USER_MODEL_KWARGS_ID)))
 
     def subscribe(self, customer, plan, token):
         subscriptions.create(customer, plan, token=token, tax_percent=self.tax_percent)
