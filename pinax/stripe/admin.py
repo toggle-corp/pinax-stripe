@@ -1,5 +1,7 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
+from .conf import settings
+from django.apps import apps as django_apps
 from django.db.models import Count, Q
 
 from .models import (  # @@@ make all these read-only
@@ -17,6 +19,11 @@ from .models import (  # @@@ make all these read-only
     Transfer,
     TransferChargeFee
 )
+
+
+def get_user_model():
+    return django_apps.get_model(settings.STRIPE_USER_MODEL,
+                                 require_ready=False)
 
 
 def user_search_fields():  # coverage: omit
