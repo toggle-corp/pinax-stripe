@@ -254,9 +254,9 @@ customer_has_card.short_description = "Customer Has Card"
 
 
 def customer_user(obj):
-    User = get_user_model()
-    username = ' '.join([getattr(obj.customer.user, 'first_name',
-                         getattr(obj.customer.user, 'last_name')]))
+    # User = get_user_model()
+    username = ' '.join([getattr(obj.customer.user, 'first_name'),
+                         getattr(obj.customer.user, 'last_name')])
     email = getattr(obj, "email", "")
     return "{0} <{1}>".format(
         username,
