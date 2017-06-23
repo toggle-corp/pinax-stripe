@@ -28,7 +28,9 @@ def get_user_model():
 def user_search_fields():  # coverage: omit
     User = get_user_model()
     fields = [
-        "user__{0}".format(User.USERNAME_FIELD)
+        # "user__{0}".format(User.USERNAME_FIELD)
+        "user__{0}".format('first_name'),
+        "user__{0}".format('last_name')
     ]
     if "email" in [f.name for f in User._meta.fields]:
         fields += ["user__email"]
@@ -253,7 +255,8 @@ customer_has_card.short_description = "Customer Has Card"
 
 def customer_user(obj):
     User = get_user_model()
-    username = getattr(obj.customer.user, User.USERNAME_FIELD)
+    username = ' '.join([getattr(obj.customer.user, 'first_name',
+                         getattr(obj.customer.user, 'last_name')]))
     email = getattr(obj, "email", "")
     return "{0} <{1}>".format(
         username,
