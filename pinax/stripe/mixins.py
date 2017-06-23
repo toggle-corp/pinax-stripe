@@ -8,8 +8,6 @@ except ImportError:
 from .actions import customers
 from .conf import settings
 
-STRIPE_USER_MODEL = __import__(settings.STRIPE_USER_MODEL)
-
 
 class LoginRequiredMixin(object):
 
@@ -23,9 +21,7 @@ class CustomerMixin(object):
     @property
     def customer(self):
         if not hasattr(self, "_customer"):
-            self._customer = customers.get_customer_for_user(
-                STRIPE_USER_MODEL.objects.get(
-                    pk=self.kwargs.get(settings.STRIPE_USER_MODEL_KWARGS_ID)))
+            self._customer = customers.get_customer_for_user(self.request.user)
         return self._customer
 
     def get_queryset(self):
