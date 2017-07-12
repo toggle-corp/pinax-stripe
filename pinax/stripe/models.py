@@ -10,7 +10,7 @@ import stripe
 
 from jsonfield.fields import JSONField
 
-from .conf import settings
+from .conf import settings, get_current_account
 from .managers import ChargeManager, CustomerManager
 from .utils import CURRENCY_SYMBOLS
 
@@ -26,6 +26,7 @@ class StripeObject(models.Model):
 
 @python_2_unicode_compatible
 class Plan(StripeObject):
+    account_id = models.CharField(max_length=255)
     amount = models.DecimalField(decimal_places=2, max_digits=9)
     currency = models.CharField(max_length=15)
     interval = models.CharField(max_length=15)
@@ -132,7 +133,9 @@ class Customer(StripeObject):
 
     @property
     def stripe_customer(self):
-        return stripe.Customer.retrieve(self.stripe_id)
+        return stripe.Customer.retrieve(
+            self.stripe_id,
+            stripe_account=get_current_account(self.user))
 
     def __str__(self):
         return str(self.user)
@@ -200,7 +203,10 @@ class Subscription(StripeObject):
 
     @property
     def stripe_subscription(self):
-        return stripe.Customer.retrieve(self.customer.stripe_id).subscriptions.retrieve(self.stripe_id)
+        return stripe.Customer.retrieve(
+            self.customer.stripe_id,
+            stripe_account=get_current_account(self.customer.user))\
+            .subscriptions.retrieve(self.stripe_id)
 
     @property
     def total_amount(self):
@@ -253,7 +259,9 @@ class Invoice(StripeObject):
 
     @property
     def stripe_invoice(self):
-        return stripe.Invoice.retrieve(self.stripe_id)
+        return stripe.Invoice.retrieve(
+            self.stripe_id,
+            stripe_account=get_current_account(self.customer.user))
 
 
 class InvoiceItem(models.Model):
@@ -302,4 +310,6 @@ class Charge(StripeObject):
 
     @property
     def stripe_charge(self):
-        return stripe.Charge.retrieve(self.stripe_id)
+        return stripe.Charge.retrieve(
+            self.stripe_id,
+            stripe_account=get_current_account(self.customer.user))

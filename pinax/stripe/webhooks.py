@@ -66,7 +66,9 @@ class Webhook(with_metaclass(Registerable, object)):
         self.event = event
 
     def validate(self):
-        evt = stripe.Event.retrieve(self.event.stripe_id)
+        evt = stripe.Event.retrieve(
+            self.event.stripe_id,
+            stripe_account=self.event.webhook_message['account'])
         self.event.validated_message = json.loads(
             json.dumps(
                 evt.to_dict(),
@@ -168,7 +170,9 @@ class ChargeWebhook(Webhook):
 
     def process_webhook(self):
         charges.sync_charge_from_stripe_data(
-            stripe.Charge.retrieve(self.event.message["data"]["object"]["id"])
+            stripe.Charge.retrieve(
+                self.event.message["data"]["object"]["id"],
+                stripe_account=self.event.webhook_message['account'])
         )
 
 

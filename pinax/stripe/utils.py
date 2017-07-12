@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from functools import reduce
 import datetime
 import decimal
 
@@ -62,3 +63,8 @@ CURRENCY_SYMBOLS = {
     "sgd": "\u0024",
     "usd": "\u0024",
 }
+
+
+def deepgetattr(obj, attr):
+    """Recurses through an attribute chain to get the ultimate value."""
+    return reduce(getattr, attr.split('.'), obj)

@@ -1,5 +1,6 @@
 from .. import models
 from .. import utils
+from ..conf import get_current_account
 
 
 def create_card(customer, token):

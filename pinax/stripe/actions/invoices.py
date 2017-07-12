@@ -3,7 +3,7 @@ import stripe
 
 from . import charges
 from . import subscriptions
-from ..conf import settings
+from ..conf import settings, get_current_account
 from .. import hooks
 from .. import models
 from .. import utils
@@ -25,7 +25,9 @@ def create(customer):
         not have to wait on the webhook to be received and processed for the
         data to be available locally.
     """
-    return stripe.Invoice.create(customer=customer.stripe_id)
+    return stripe.Invoice.create(
+        customer=customer.stripe_id,
+        stripe_account=get_current_account(customer.user))
 
 
 def create_and_pay(customer):
@@ -83,7 +85,9 @@ def sync_invoice_from_stripe_data(stripe_invoice, send_receipt=settings.PINAX_ST
     sub_id = stripe_invoice.get("subscription")
 
     if stripe_invoice.get("charge"):
-        charge = charges.sync_charge_from_stripe_data(stripe.Charge.retrieve(stripe_invoice["charge"]))
+        charge = charges.sync_charge_from_stripe_data(
+            stripe.Charge.retrieve(stripe_invoice["charge"],
+                                   stripe_account=get_current_account(c.user)))
         if send_receipt:
             hooks.hookset.send_receipt(charge)
     else:
