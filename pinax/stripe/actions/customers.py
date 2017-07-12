@@ -7,7 +7,7 @@ import stripe
 from . import invoices
 from . import sources
 from . import subscriptions
-from ..conf import settings
+from ..conf import settings, get_current_account
 from .. import hooks
 from .. import models
 from .. import utils
@@ -27,7 +27,8 @@ def can_charge(customer):
     return False
 
 
-def create(user, card=None, plan=settings.PINAX_STRIPE_DEFAULT_PLAN, charge_immediately=True, quantity=None):
+def create(user, card=None, plan=settings.PINAX_STRIPE_DEFAULT_PLAN,
+           charge_immediately=True, quantity=None):
     """
     Creates a Stripe customer.
 
@@ -51,7 +52,8 @@ def create(user, card=None, plan=settings.PINAX_STRIPE_DEFAULT_PLAN, charge_imme
         source=card,
         plan=plan,
         quantity=quantity,
-        trial_end=trial_end
+        trial_end=trial_end,
+        stripe_account=get_current_account(user)
     )
     try:
         with transaction.atomic():
@@ -61,7 +63,9 @@ def create(user, card=None, plan=settings.PINAX_STRIPE_DEFAULT_PLAN, charge_imme
             )
     except IntegrityError:
         # There is already a Customer object for this user
-        stripe.Customer.retrieve(stripe_customer["id"]).delete()
+        stripe.Customer.retrieve(
+            stripe_customer["id"],
+            stripe_account=get_current_account(cus.user)).delete()
         return models.Customer.objects.get(user=user)
 
     sync_customer(cus, stripe_customer)

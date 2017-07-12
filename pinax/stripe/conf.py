@@ -6,6 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 import stripe
 
 from appconf import AppConf
+from .utils import deepgetattr
 
 
 def load_path_attr(path):
@@ -53,3 +54,7 @@ class PinaxStripeAppConf(AppConf):
 
     def configure_hookset(self, value):
         return load_path_attr(value)()
+
+
+def get_current_account(user):
+    return deepgetattr(user, settings.PINAX_USER_ACCT_VAR)

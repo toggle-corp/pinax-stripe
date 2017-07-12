@@ -8,6 +8,7 @@ import stripe
 from .. import hooks
 from .. import models
 from .. import utils
+from ..conf import get_current_account
 
 
 def calculate_refund_amount(charge, amount=None):
@@ -68,6 +69,7 @@ def create(amount, customer, source=None, currency="usd", description=None, send
         customer=customer,
         description=description,
         capture=capture,
+        stripe_account=get_current_account(customer.user)
     )
     charge = sync_charge_from_stripe_data(stripe_charge)
     if send_receipt:

@@ -2,6 +2,7 @@ import stripe
 
 from .. import models
 from .. import utils
+from ..conf import get_current_account
 
 
 def during(year, month):
@@ -51,5 +52,8 @@ def update_status(transfer):
     Args:
         transfer: a pinax.stripe.models.Transfer object to update
     """
-    transfer.status = stripe.Transfer.retrieve(transfer.stripe_id).status
+    transfer.status = stripe.Transfer.retrieve(
+        transfer.stripe_id,
+        stripe_account=get_current_account(transfer.event.customer.user)
+    ).status
     transfer.save()

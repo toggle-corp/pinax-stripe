@@ -9,6 +9,7 @@ import stripe
 from .. import hooks
 from .. import models
 from .. import utils
+from ..conf import get_current_account
 
 
 def cancel(subscription, at_period_end=True):
