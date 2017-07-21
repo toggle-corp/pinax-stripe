@@ -36,6 +36,12 @@ class Plan(StripeObject):
     trial_period_days = models.IntegerField(null=True)
     metadata = JSONField(null=True)
 
+    @property
+    def stripe_plan(self):
+        return stripe.Plan.retrieve(
+            self.stripe_id,
+            stripe_account=self.account_id)
+
     def __str__(self):
         return "{} ({}{})".format(self.name, CURRENCY_SYMBOLS.get(self.currency, ""), self.amount)
 
