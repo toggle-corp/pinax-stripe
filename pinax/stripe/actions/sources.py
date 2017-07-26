@@ -15,6 +15,13 @@ def create_card(customer, token):
     return sync_payment_source_from_stripe_data(customer, source)
 
 
+def delete_cards(customer):
+    cards = []
+    for source in customer.card_set.all():
+        cards.append(delete_card(customer, source.stripe_id))
+    return cards
+
+
 def delete_card(customer, source):
     """
     Deletes a card from a customer
