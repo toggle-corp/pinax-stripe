@@ -1,6 +1,7 @@
+import stripe
 from .. import models
 from .. import utils
-from ..conf import get_current_account
+# from ..conf import get_current_account
 
 
 def create_card(customer, token):
@@ -18,7 +19,10 @@ def create_card(customer, token):
 def delete_cards(customer):
     cards = []
     for source in customer.card_set.all():
-        cards.append(delete_card(customer, source.stripe_id))
+        try:
+            cards.append(delete_card(customer, source.stripe_id))
+        except stripe.error.InvalidRequestError:
+            pass
     return cards
 
 

@@ -67,6 +67,21 @@ def pay(invoice, send_receipt=True):
     return False
 
 
+def create_invoice_item(customer, amount, description, currency="usd"):
+    if not isinstance(amount, decimal.Decimal):
+        raise ValueError(
+            "You must supply a decimal value representing dollars."
+        )
+    invoice_item = stripe.InvoiceItem.create(
+        customer=customer.stripe_id,
+        amount=utils.convert_amount_for_api(amount, currency),
+        description=description,
+        currency=currency,
+        stripe_account=get_current_account(customer.user),
+    )
+    return invoice_item
+
+
 def sync_invoice_from_stripe_data(stripe_invoice, send_receipt=settings.PINAX_STRIPE_SEND_EMAIL_RECEIPTS):
     """
     Syncronizes a local invoice with data from the Stripe API
