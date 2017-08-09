@@ -9,7 +9,7 @@ import stripe
 from .. import hooks
 from .. import models
 from .. import utils
-from ..conf import get_current_account
+# from ..conf import get_current_account
 
 
 def cancel(subscription, at_period_end=True):
@@ -24,7 +24,8 @@ def cancel(subscription, at_period_end=True):
     sync_subscription_from_stripe_data(subscription.customer, sub)
 
 
-def create(customer, plan, quantity=None, trial_days=None, token=None, coupon=None, tax_percent=None):
+def create(customer, plan, quantity=None, trial_end=None, trial_days=None,
+           token=None, coupon=None, tax_percent=None):
     """
     Creates a subscription for the given customer
 
@@ -47,7 +48,11 @@ def create(customer, plan, quantity=None, trial_days=None, token=None, coupon=No
     cu = customer.stripe_customer
 
     subscription_params = {}
-    if trial_days:
+    if trial_end:
+        subscription_params["trial_end"] = trial_end \
+            if trial_end.day - timezone.now().day > 0\
+            else 'now'
+    if not trial_end and trial_days:
         subscription_params["trial_end"] = datetime.datetime.utcnow() + datetime.timedelta(days=trial_days)
     if token:
         subscription_params["source"] = token
@@ -172,7 +177,8 @@ def sync_subscription_from_stripe_data(customer, subscription):
     return sub
 
 
-def update(subscription, plan=None, quantity=None, prorate=True, coupon=None, charge_immediately=False):
+def update(subscription, plan=None, trial_end=None, quantity=None,
+           prorate=True, coupon=None, charge_immediately=False):
     """
     Updates a subscription
 
@@ -193,6 +199,10 @@ def update(subscription, plan=None, quantity=None, prorate=True, coupon=None, ch
         stripe_subscription.prorate = False
     if coupon:
         stripe_subscription.coupon = coupon
+    if trial_end:
+        stripe_subscription.trial_end = trial_end \
+            if trial_end.day - timezone.now().day > 0\
+            else 'now'
     if charge_immediately:
         if utils.convert_tstamp(stripe_subscription.trial_end) > timezone.now():
             stripe_subscription.trial_end = 'now'
